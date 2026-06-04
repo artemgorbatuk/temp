@@ -1,0 +1,1597 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.EntityFrameworkCore.Proxies</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder">
+            <summary>
+                Allows SQL Server specific configuration to be performed on <see cref="T:Microsoft.EntityFrameworkCore.DbContextOptions" />.
+            </summary>
+            <remarks>
+                Instances of this class are returned from a call to <see cref="O:SqlServerDbContextOptionsExtensions.UseSqlServer" />
+                and it is not designed to be directly constructed in your application code.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder.#ctor(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder" /> class.
+            </summary>
+            <param name="optionsBuilder">The core options builder.</param>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder.OptionsBuilder">
+            <summary>
+                Gets the core options builder.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder.IgnoreNonVirtualNavigations(System.Boolean)">
+            <summary>
+                Configures the proxies to ignore navigations that are not virtual. By default, an exception will be thrown if a non-virtual
+                navigation is found.
+            </summary>
+            <param name="ignoreNonVirtualNavigations">
+                <see langword="true" /> to ignore navigations that are not virtual. The default value is
+                <see langword="false" />, meaning an exception will be thrown if a non-virtual navigation is found.
+            </param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder.WithOption(System.Func{Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension,Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension})">
+            <summary>
+                Sets an option by cloning the extension used to store the settings. This ensures the builder
+                does not modify options that are already in use elsewhere.
+            </summary>
+            <param name="setAction">An action to set the option.</param>
+            <returns>The same builder instance so that multiple calls can be chained.</returns>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.DictionaryCannotBeProxied(System.Object,System.Object,System.Object)">
+            <summary>
+                The type '{dictionaryType}' used for shared entity type '{entityType}' is not suitable for use as a change-tracking proxy because its indexer property is not virtual. Consider using an implementation of '{interfaceType}' that allows overriding of the indexer.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.EntityTypeNotFoundShared(System.Object)">
+            <summary>
+                The type '{clrType}' is configured as a shared-type entity type, but the entity type name is not known. Ensure that CreateProxy is called on a DbSet created specifically for the shared-type entity type through use of a 'DbContext.Set' overload that accepts an entity type name.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.FieldProperty(System.Object,System.Object)">
+            <summary>
+                Property '{property}' on entity type '{entityType}' is mapped without a CLR property. 'UseChangeTrackingProxies' requires all entity types to be public, unsealed, have virtual properties, and have a public or protected constructor. 'UseLazyLoadingProxies' requires only the navigation properties be virtual.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.ItsASeal(System.Object)">
+            <summary>
+                Entity type '{entityType}' is sealed. 'UseChangeTrackingProxies' requires all entity types to be public, unsealed, have virtual properties, and have a public or protected constructor. 'UseLazyLoadingProxies' requires only the navigation properties be virtual.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.NonVirtualIndexerProperty(System.Object)">
+            <summary>
+                The mapped indexer property on entity type '{entityType}' is not virtual. 'UseChangeTrackingProxies' requires all entity types to be public, unsealed, have virtual properties, and have a public or protected constructor. 'UseLazyLoadingProxies' requires only the navigation properties be virtual.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.NonVirtualProperty(System.Object,System.Object)">
+            <summary>
+                Property '{1_entityType}.{0_property}' is not virtual. 'UseChangeTrackingProxies' requires all entity types to be public, unsealed, have virtual properties, and have a public or protected constructor. 'UseLazyLoadingProxies' requires only the navigation properties be virtual.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.ProxiesNotEnabled(System.Object)">
+            <summary>
+                Unable to create proxy for '{entityType}' because proxies are not enabled. Call 'DbContextOptionsBuilder.UseChangeTrackingProxies' or 'DbContextOptionsBuilder.UseLazyLoadingProxies' to enable proxies.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Internal.ProxiesStrings.ProxyServicesMissing">
+            <summary>
+                'UseChangeTrackingProxies' and 'UseLazyLoadingProxies' each require 'AddEntityFrameworkProxies' to be called on the internal service provider used.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.ProxiesExtensions">
+            <summary>
+                Extension methods related to use of proxies with Entity Framework Core.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.UseChangeTrackingProxies(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder,System.Boolean,System.Boolean)">
+            <summary>
+                Turns on the creation of change tracking proxies.
+            </summary>
+            <remarks>
+                <para>
+                    Note that this requires appropriate services to be available in the EF internal service provider. Normally this
+                    will happen automatically, but if the application is controlling the service provider, then a call to
+                    <see cref="M:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions.AddEntityFrameworkProxies(Microsoft.Extensions.DependencyInjection.IServiceCollection)" /> may be needed.
+                </para>
+                <para>
+                    See <see href="https://aka.ms/efcore-docs-notification-entities">Notification entities</see> for more information and examples.
+                </para>
+            </remarks>
+            <param name="optionsBuilder">
+                The options builder, as passed to <see cref="M:Microsoft.EntityFrameworkCore.DbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)" />
+                or exposed AddDbContext.
+            </param>
+            <param name="useChangeTrackingProxies">
+                <see langword="true" /> to use change tracking proxies; <see langword="false" /> to prevent their
+                use.
+            </param>
+            <param name="checkEquality">
+                <see langword="true" /> if proxy change detection should check if the incoming value is equal to the current
+                value before notifying. Defaults to <see langword="true" />.
+            </param>
+            <returns>The same builder to allow method calls to be chained.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.UseChangeTrackingProxies``1(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder{``0},System.Boolean,System.Boolean)">
+            <summary>
+                Turns on the creation of change tracking proxies.
+            </summary>
+            <remarks>
+                <para>
+                    Note that this requires appropriate services to be available in the EF internal service provider. Normally this
+                    will happen automatically, but if the application is controlling the service provider, then a call to
+                    <see cref="M:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions.AddEntityFrameworkProxies(Microsoft.Extensions.DependencyInjection.IServiceCollection)" /> may be needed.
+                </para>
+                <para>
+                    See <see href="https://aka.ms/efcore-docs-notification-entities">Notification entities</see> for more information and examples.
+                </para>
+            </remarks>
+            <typeparam name="TContext">The <see cref="T:Microsoft.EntityFrameworkCore.DbContext" /> type.</typeparam>
+            <param name="optionsBuilder">
+                The options builder, as passed to <see cref="M:Microsoft.EntityFrameworkCore.DbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)" />
+                or exposed AddDbContext.
+            </param>
+            <param name="useChangeTrackingProxies">
+                <see langword="true" /> to use change tracking proxies; <see langword="false" /> to prevent their
+                use.
+            </param>
+            <param name="checkEquality">
+                <see langword="true" /> if proxy change detection should check if the incoming value is equal to the current
+                value before notifying. Defaults to <see langword="true" />.
+            </param>
+            <returns>The same builder to allow method calls to be chained.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.UseLazyLoadingProxies(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder,System.Boolean)">
+            <summary>
+                Turns on the creation of lazy loading proxies.
+            </summary>
+            <remarks>
+                <para>
+                    Note that this requires appropriate services to be available in the EF internal service provider. Normally this
+                    will happen automatically, but if the application is controlling the service provider, then a call to
+                    <see cref="M:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions.AddEntityFrameworkProxies(Microsoft.Extensions.DependencyInjection.IServiceCollection)" /> may be needed.
+                </para>
+                <para>
+                    See <see href="https://aka.ms/efcore-docs-lazy-loading">Lazy loading</see> for more information and examples.
+                </para>
+            </remarks>
+            <param name="optionsBuilder">
+                The options builder, as passed to <see cref="M:Microsoft.EntityFrameworkCore.DbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)" />
+                or exposed AddDbContext.
+            </param>
+            <param name="useLazyLoadingProxies"><see langword="true" /> to use lazy loading proxies; <see langword="false" /> to prevent their use.</param>
+            <returns>The same builder to allow method calls to be chained.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.UseLazyLoadingProxies(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder,System.Action{Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder})">
+            <summary>
+                Turns on the creation of lazy loading proxies.
+            </summary>
+            <remarks>
+                <para>
+                    Note that this requires appropriate services to be available in the EF internal service provider. Normally this
+                    will happen automatically, but if the application is controlling the service provider, then a call to
+                    <see cref="M:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions.AddEntityFrameworkProxies(Microsoft.Extensions.DependencyInjection.IServiceCollection)" /> may be needed.
+                </para>
+                <para>
+                    See <see href="https://aka.ms/efcore-docs-lazy-loading">Lazy loading</see> for more information and examples.
+                </para>
+            </remarks>
+            <param name="optionsBuilder">
+                The options builder, as passed to <see cref="M:Microsoft.EntityFrameworkCore.DbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)" />
+                or exposed AddDbContext.
+            </param>
+            <param name="lazyLoadingProxiesOptionsAction">An optional action to allow additional proxy-specific configuration.</param>
+            <returns>The same builder to allow method calls to be chained.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.UseLazyLoadingProxies``1(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder{``0},System.Boolean)">
+            <summary>
+                Turns on the creation of lazy loading proxies.
+            </summary>
+            <remarks>
+                <para>
+                    Note that this requires appropriate services to be available in the EF internal service provider. Normally this
+                    will happen automatically, but if the application is controlling the service provider, then a call to
+                    <see cref="M:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions.AddEntityFrameworkProxies(Microsoft.Extensions.DependencyInjection.IServiceCollection)" /> may be needed.
+                </para>
+                <para>
+                    See <see href="https://aka.ms/efcore-docs-lazy-loading">Lazy loading</see> for more information and examples.
+                </para>
+            </remarks>
+            <typeparam name="TContext">The <see cref="T:Microsoft.EntityFrameworkCore.DbContext" /> type.</typeparam>
+            <param name="optionsBuilder">
+                The options builder, as passed to <see cref="M:Microsoft.EntityFrameworkCore.DbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)" />
+                or exposed AddDbContext.
+            </param>
+            <param name="useLazyLoadingProxies"><see langword="true" /> to use lazy loading proxies; <see langword="false" /> to prevent their use.</param>
+            <returns>The same builder to allow method calls to be chained.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.UseLazyLoadingProxies``1(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder{``0},System.Action{Microsoft.EntityFrameworkCore.LazyLoadingProxiesOptionsBuilder})">
+            <summary>
+                Turns on the creation of lazy loading proxies.
+            </summary>
+            <remarks>
+                <para>
+                    Note that this requires appropriate services to be available in the EF internal service provider. Normally this
+                    will happen automatically, but if the application is controlling the service provider, then a call to
+                    <see cref="M:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions.AddEntityFrameworkProxies(Microsoft.Extensions.DependencyInjection.IServiceCollection)" /> may be needed.
+                </para>
+                <para>
+                    See <see href="https://aka.ms/efcore-docs-lazy-loading">Lazy loading</see> for more information and examples.
+                </para>
+            </remarks>
+            <typeparam name="TContext">The <see cref="T:Microsoft.EntityFrameworkCore.DbContext" /> type.</typeparam>
+            <param name="optionsBuilder">
+                The options builder, as passed to <see cref="M:Microsoft.EntityFrameworkCore.DbContext.OnConfiguring(Microsoft.EntityFrameworkCore.DbContextOptionsBuilder)" />
+                or exposed AddDbContext.
+            </param>
+            <param name="lazyLoadingProxiesOptionsAction">An optional action to allow additional proxy-specific configuration.</param>
+            <returns>The same builder to allow method calls to be chained.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.CreateProxy(Microsoft.EntityFrameworkCore.DbContext,System.Type,System.Object[])">
+            <summary>
+                Creates a proxy instance for an entity type if proxy creation has been turned on.
+            </summary>
+            <param name="context">The <see cref="T:Microsoft.EntityFrameworkCore.DbContext" />.</param>
+            <param name="entityType">The entity type for which a proxy is needed.</param>
+            <param name="constructorArguments">Arguments to pass to the entity type constructor.</param>
+            <returns>The proxy instance.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.CreateProxy``1(Microsoft.EntityFrameworkCore.DbContext,System.Object[])">
+            <summary>
+                Creates a proxy instance for an entity type if proxy creation has been turned on.
+            </summary>
+            <typeparam name="TEntity">The entity type for which a proxy is needed.</typeparam>
+            <param name="context">The <see cref="T:Microsoft.EntityFrameworkCore.DbContext" />.</param>
+            <param name="constructorArguments">Arguments to pass to the entity type constructor.</param>
+            <returns>The proxy instance.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.CreateProxy``1(Microsoft.EntityFrameworkCore.DbContext,System.Action{``0},System.Object[])">
+            <summary>
+                Creates a proxy instance for an entity type if proxy creation has been turned on.
+            </summary>
+            <typeparam name="TEntity">The entity type for which a proxy is needed.</typeparam>
+            <param name="context">The <see cref="T:Microsoft.EntityFrameworkCore.DbContext" />.</param>
+            <param name="configureEntity">Called after the entity is created to set property values, etc.</param>
+            <param name="constructorArguments">Arguments to pass to the entity type constructor.</param>
+            <returns>The proxy instance.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.CreateProxy``1(Microsoft.EntityFrameworkCore.DbSet{``0},System.Object[])">
+            <summary>
+                Creates a proxy instance for an entity type if proxy creation has been turned on.
+            </summary>
+            <typeparam name="TEntity">The entity type for which a proxy is needed.</typeparam>
+            <param name="set">The <see cref="T:Microsoft.EntityFrameworkCore.DbSet`1" />.</param>
+            <param name="constructorArguments">Arguments to pass to the entity type constructor.</param>
+            <returns>The proxy instance.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.ProxiesExtensions.CreateProxy``1(Microsoft.EntityFrameworkCore.DbSet{``0},System.Action{``0},System.Object[])">
+            <summary>
+                Creates a proxy instance for an entity type if proxy creation has been turned on.
+            </summary>
+            <typeparam name="TEntity">The entity type for which a proxy is needed.</typeparam>
+            <param name="set">The <see cref="T:Microsoft.EntityFrameworkCore.DbSet`1" />.</param>
+            <param name="configureEntity">Called after the entity is created to set property values, etc.</param>
+            <param name="constructorArguments">Arguments to pass to the entity type constructor.</param>
+            <returns>The proxy instance.</returns>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyFactory">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyFactory.CreateLazyLoadingProxy(Microsoft.EntityFrameworkCore.DbContext,Microsoft.EntityFrameworkCore.Metadata.IEntityType,Microsoft.EntityFrameworkCore.Infrastructure.ILazyLoader,System.Object[])">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyFactory.CreateProxy(Microsoft.EntityFrameworkCore.DbContext,Microsoft.EntityFrameworkCore.Metadata.IEntityType,System.Object[])">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyFactory.CreateProxyType(Microsoft.EntityFrameworkCore.Metadata.IEntityType)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyFactory.Create(Microsoft.EntityFrameworkCore.DbContext,System.Type,System.Object[])">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyLazyLoader">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyLazyLoader.LazyLoader">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.LazyLoadingInterceptor">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.LazyLoadingInterceptor.#ctor(Microsoft.EntityFrameworkCore.Metadata.IEntityType,Microsoft.EntityFrameworkCore.Infrastructure.ILazyLoader)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.LazyLoadingInterceptor.Intercept(Castle.DynamicProxy.IInvocation)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangedInterceptor">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangedInterceptor.#ctor(Microsoft.EntityFrameworkCore.Metadata.IEntityType,System.Boolean)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangedInterceptor.Intercept(Castle.DynamicProxy.IInvocation)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangeInterceptorBase">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangeInterceptorBase.#ctor(Microsoft.EntityFrameworkCore.Metadata.IEntityType)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangeInterceptorBase.EntityType">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangeInterceptorBase.GetValueComparer(Microsoft.EntityFrameworkCore.Metadata.IProperty)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangeInterceptorBase.FindPropertyName(Castle.DynamicProxy.IInvocation)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangingInterceptor">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangingInterceptor.#ctor(Microsoft.EntityFrameworkCore.Metadata.IEntityType,System.Boolean)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.PropertyChangingInterceptor.Intercept(Castle.DynamicProxy.IInvocation)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesConventionSetPlugin">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesConventionSetPlugin.#ctor(Microsoft.EntityFrameworkCore.Infrastructure.IDbContextOptions,Microsoft.EntityFrameworkCore.Metadata.LazyLoaderParameterBindingFactoryDependencies,Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure.ProviderConventionSetBuilderDependencies)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesConventionSetPlugin.ConventionSetBuilderDependencies">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesConventionSetPlugin.LazyLoaderParameterBindingFactoryDependencies">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesConventionSetPlugin.ModifyConventions(Microsoft.EntityFrameworkCore.Metadata.Conventions.ConventionSet)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.#ctor">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.#ctor(Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.Info">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.Clone">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.UseLazyLoadingProxies">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.IgnoreNonVirtualNavigations">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.UseChangeTrackingProxies">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.CheckEquality">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.UseProxies">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.WithLazyLoading(System.Boolean)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.WithIgnoreNonVirtualNavigations(System.Boolean)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.WithChangeTracking(System.Boolean,System.Boolean)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.Validate(Microsoft.EntityFrameworkCore.Infrastructure.IDbContextOptions)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension.ApplyServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyAnnotationNames">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="F:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyAnnotationNames.Prefix">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="F:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyAnnotationNames.LazyLoading">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="F:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyAnnotationNames.ChangeTracking">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="F:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyAnnotationNames.CheckEquality">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingInterceptor">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingInterceptor.#ctor(Microsoft.EntityFrameworkCore.Proxies.Internal.IProxyFactory)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingInterceptor.ModifyBinding(Microsoft.EntityFrameworkCore.Diagnostics.InstantiationBindingInterceptionData,Microsoft.EntityFrameworkCore.Metadata.InstantiationBinding)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingRewriter">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingRewriter.#ctor(Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension,Microsoft.EntityFrameworkCore.Metadata.LazyLoaderParameterBindingFactoryDependencies,Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure.ProviderConventionSetBuilderDependencies)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingRewriter.ConventionSetBuilderDependencies">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingRewriter.LazyLoaderParameterBindingFactoryDependencies">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyBindingRewriter.ProcessModelFinalizing(Microsoft.EntityFrameworkCore.Metadata.Builders.IConventionModelBuilder,Microsoft.EntityFrameworkCore.Metadata.Conventions.IConventionContext{Microsoft.EntityFrameworkCore.Metadata.Builders.IConventionModelBuilder})">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyChangeTrackingConvention">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyChangeTrackingConvention.#ctor(Microsoft.EntityFrameworkCore.Proxies.Internal.ProxiesOptionsExtension)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyChangeTrackingConvention.ProcessModelInitialized(Microsoft.EntityFrameworkCore.Metadata.Builders.IConventionModelBuilder,Microsoft.EntityFrameworkCore.Metadata.Conventions.IConventionContext{Microsoft.EntityFrameworkCore.Metadata.Builders.IConventionModelBuilder})">
+            <summary>
+                Called after a model is finalized.
+            </summary>
+            <param name="modelBuilder">The builder for the model.</param>
+            <param name="context">Additional information associated with convention execution.</param>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyFactory">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyFactory.Create(Microsoft.EntityFrameworkCore.DbContext,System.Type,System.Object[])">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyFactory.CreateProxyType(Microsoft.EntityFrameworkCore.Metadata.IEntityType)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyFactory.CreateLazyLoadingProxy(Microsoft.EntityFrameworkCore.DbContext,Microsoft.EntityFrameworkCore.Metadata.IEntityType,Microsoft.EntityFrameworkCore.Infrastructure.ILazyLoader,System.Object[])">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Proxies.Internal.ProxyFactory.CreateProxy(Microsoft.EntityFrameworkCore.DbContext,Microsoft.EntityFrameworkCore.Metadata.IEntityType,System.Object[])">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2">
+            <summary>
+                Represents a dictionary with non-null unique values that contains an inverse dictionary.
+            </summary>
+            <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+            <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class that is empty,
+                has the default initial capacity, and uses the default equality comparers.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor(System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class that is empty,
+                has the specified initial capacity, and uses the default equality comparers.
+            </summary>
+            <param name="capacity">The initial number of elements that <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> can contain.</param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor(System.Collections.Generic.IDictionary{`0,`1})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class
+                that contains elements copied from the specified <see cref="T:System.Collections.Generic.IDictionary`2" />
+                and uses the default equality comparers.
+            </summary>
+            <param name="dictionary">
+                The <see cref="T:System.Collections.Generic.IDictionary`2" /> whose elements are copied to the new
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{`0,`1}})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class
+                that contains elements copied from the specified <see cref="T:System.Collections.Generic.IEnumerable`1" />
+                and uses the default equality comparers.
+            </summary>
+            <param name="collection">
+                The <see cref="T:System.Collections.Generic.IEnumerable`1" /> whose elements are copied to the new
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor(System.Collections.Generic.IEqualityComparer{`0},System.Collections.Generic.IEqualityComparer{`1})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class that is empty,
+                has the default initial capacity, and uses the specified equality comparers.
+            </summary>
+            <param name="keyComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing keys, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the key.
+            </param>
+            <param name="valueComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing values, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the value.
+            </param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor(System.Int32,System.Collections.Generic.IEqualityComparer{`0},System.Collections.Generic.IEqualityComparer{`1})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class that is empty,
+                has the specified initial capacity, and uses the specified equality comparers.
+            </summary>
+            <param name="capacity">The initial number of elements that <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> can contain.</param>
+            <param name="keyComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing keys, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the key.
+            </param>
+            <param name="valueComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing values, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the value.
+            </param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor(System.Collections.Generic.IDictionary{`0,`1},System.Collections.Generic.IEqualityComparer{`0},System.Collections.Generic.IEqualityComparer{`1})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class that
+                contains elements copied from the specified <see cref="T:System.Collections.Generic.IDictionary`2" />, and uses the specified equality comparers.
+            </summary>
+            <param name="dictionary">
+                The <see cref="T:System.Collections.Generic.IDictionary`2" /> whose elements are copied to the new
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </param>
+            <param name="keyComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing keys, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the key.
+            </param>
+            <param name="valueComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing values, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the value.
+            </param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.#ctor(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{`0,`1}},System.Collections.Generic.IEqualityComparer{`0},System.Collections.Generic.IEqualityComparer{`1})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> class that
+                contains elements copied from the specified <see cref="T:System.Collections.Generic.IEnumerable`1" />, and uses the specified equality comparers.
+            </summary>
+            <param name="collection">
+                The <see cref="T:System.Collections.Generic.IEnumerable`1" /> whose elements are copied to the new
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </param>
+            <param name="keyComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing keys, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the key.
+            </param>
+            <param name="valueComparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when
+                comparing values, or null to use the default <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> for the type of the value.
+            </param>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Inverse">
+            <summary>
+                Gets the inverse <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Count">
+            <summary>
+                Gets the number of key/value pairs contained in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Keys">
+            <summary>
+                Gets a collection containing the keys in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Values">
+            <summary>
+                Gets a collection containing the values in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.KeyValueComparer">
+            <summary>
+                Gets the <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> that is used to determine equality of keys for the dictionary.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.ValueComparer">
+            <summary>
+                Gets the <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> that is used to determine equality of values for the dictionary.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Item(`0)">
+            <summary>
+                Gets or sets the value associated with the specified key.
+            </summary>
+            <param name="key">The key of the value to get or set.</param>
+            <returns>
+                The value associated with the specified key. If the specified key is not found, a get operation throws a
+                <see cref="T:System.Collections.Generic.KeyNotFoundException" />, and a set operation creates a new element with the specified key.
+            </returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Add(`0,`1)">
+            <summary>
+                Adds the specified key and value to the dictionary.
+            </summary>
+            <param name="key">The key of the element to add.</param>
+            <param name="value">The value of the element to add.</param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Remove(`0)">
+            <summary>
+                Removes the value with the specified key from the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+            <param name="key">The key of the element to remove.</param>
+            <returns>
+                <see langword="true" /> if the element is successfully found and removed; otherwise, <see langword="false" />.
+                This method returns <see langword="false" /> if key is not found in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Remove(`0,`1@)">
+            <summary>
+                Removes the value with the specified key from the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+            <param name="key">The key of the element to remove.</param>
+            <param name="value">
+                When this method returns, contains the value associated with the specified key,
+                if the key is found; otherwise, the default value for the type of the value parameter.
+                This parameter is passed uninitialized.
+            </param>
+            <returns>
+                <see langword="true" /> if the element is successfully found and removed; otherwise, <see langword="false" />.
+                This method returns <see langword="false" /> if key is not found in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.Clear">
+            <summary>
+                Removes all keys and values from the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.ContainsKey(`0)">
+            <summary>
+                Determines whether the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> contains the specified key.
+            </summary>
+            <param name="key">The key to locate in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.</param>
+            <returns>
+                <see langword="true" /> if the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> contains
+                an element with the specified key; otherwise, <see langword="false" />.
+            </returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.ContainsValue(`1)">
+            <summary>
+                Determines whether the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> contains the specified value.
+            </summary>
+            <param name="value">The value to locate in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.</param>
+            <returns>
+                <see langword="true" /> if the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> contains
+                an element with the specified value; otherwise, <see langword="false" />.
+            </returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.TryAdd(`0,`1)">
+            <summary>
+                Attempts to add the specified key and value to the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.
+            </summary>
+            <param name="key">The key of the element to add.</param>
+            <param name="value">The value of the element to add.</param>
+            <returns>
+                <see langword="true" /> if the key/value pair was added to the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />
+                successfully; otherwise, <see langword="false" />.
+            </returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.TryGetValue(`0,`1@)">
+            <summary>
+                Gets the value associated with the specified key.
+            </summary>
+            <param name="key">The key of the value to get.</param>
+            <param name="value">
+                When this method returns, contains the value associated with the specified key,
+                if the key is found; otherwise, the default value for the type of the value parameter.
+                This parameter is passed uninitialized.
+            </param>
+            <returns>
+                <see langword="true" /> if the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> contains
+                an element with the specified key; otherwise, <see langword="false" />.
+            </returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.EnsureCapacity(System.Int32)">
+            <summary>
+                Resizes the internal data structure if necessary to ensure no additional resizing to support the specified capacity.
+            </summary>
+            <param name="capacity">The number of elements that the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> must be able to contain.</param>
+            <returns>The capacity of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" />.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.TrimExcess">
+            <summary>
+                Sets the capacity of an <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> object to the actual number of elements it contains,
+                rounded up to a nearby, implementation-specific value.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.TrimExcess(System.Int32)">
+            <summary>
+                Sets the capacity of an <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> object to the specified capacity, rounded up to a nearby,
+                implementation-specific value.
+            </summary>
+            <param name="capacity">The number of elements that the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2" /> must be able to contain.</param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2.AsReadOnly">
+            <summary>
+                Returns an <see cref="T:System.Collections.Generic.IReadOnlyDictionary`2"></see> wrapper for the current dictionary.
+            </summary>
+            <returns>An object that acts as a read-only wrapper around the current <see cref="T:Microsoft.EntityFrameworkCore.Utilities.BidirectionalDictionary`2"></see>.</returns>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2">
+            <summary>
+                Represents an ordered collection of keys and values with the same performance as <see cref="T:System.Collections.Generic.Dictionary`2" /> with O(1)
+                lookups and adds but with O(n) inserts and removes.
+            </summary>
+            <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+            <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count">
+            <summary>
+                Gets the number of key/value pairs contained in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </summary>
+            <returns>The number of key/value pairs contained in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.</returns>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Comparer">
+            <summary>
+                Gets the <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> that is used to determine equality of keys for the dictionary.
+            </summary>
+            <returns>
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> generic interface implementation that is used to determine equality of keys for the
+                current <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> and to provide hash values for the keys.
+            </returns>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Keys">
+            <summary>
+                Gets a collection containing the keys in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </summary>
+            <returns>
+                An <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" /> containing the keys in the
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </returns>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Values">
+            <summary>
+                Gets a collection containing the values in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </summary>
+            <returns>
+                An <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" /> containing the values in the
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </returns>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Item(`0)">
+            <summary>
+                Gets or sets the value associated with the specified key as an O(1) operation.
+            </summary>
+            <param name="key">The key of the value to get or set.</param>
+            <returns>
+                The value associated with the specified key. If the specified key is not found, a get operation throws a
+                <see cref="T:System.Collections.Generic.KeyNotFoundException" />, and a set operation creates a new element with the specified key.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">The property is retrieved and <paramref name="key" /> does not exist in the collection.</exception>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Item(System.Int32)">
+            <summary>
+                Gets or sets the value at the specified index as an O(1) operation.
+            </summary>
+            <param name="index">The zero-based index of the element to get or set.</param>
+            <returns>The value at the specified index.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater
+                than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> class that is empty, has the default initial capacity,
+                and uses the default equality comparer for the key type.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.#ctor(System.Int32)">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> class that is empty, has the specified initial
+                capacity, and uses the default equality comparer for the key type.
+            </summary>
+            <param name="capacity">The initial number of elements that the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> can contain.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="capacity" /> is less than 0.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.#ctor(System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> class that is empty, has the default initial capacity,
+                and uses the specified <see cref="T:System.Collections.Generic.IEqualityComparer`1" />.
+            </summary>
+            <param name="comparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when comparing keys, or null to use the default
+                <see cref="T:System.Collections.Generic.EqualityComparer`1" /> for the type of the key.
+            </param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.#ctor(System.Int32,System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> class that is empty, has the specified initial
+                capacity, and uses the specified <see cref="T:System.Collections.Generic.IEqualityComparer`1" />.
+            </summary>
+            <param name="capacity">The initial number of elements that the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> can contain.</param>
+            <param name="comparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when comparing keys, or null to use the default
+                <see cref="T:System.Collections.Generic.EqualityComparer`1" /> for the type of the key.
+            </param>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="capacity" /> is less than 0.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.#ctor(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{`0,`1}})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> class that contains elements copied from the specified
+                <see cref="T:System.Collections.Generic.IEnumerable`1" /> and uses the default equality comparer for the key type.
+            </summary>
+            <param name="collection">
+                The <see cref="T:System.Collections.Generic.IEnumerable`1" /> whose elements are copied to the new
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="collection" /> is null.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="collection" /> contains one or more duplicate keys.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.#ctor(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{`0,`1}},System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+                Initializes a new instance of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> class that contains elements copied from the specified
+                <see cref="T:System.Collections.Generic.IEnumerable`1" /> and uses the specified <see cref="T:System.Collections.Generic.IEqualityComparer`1" />.
+            </summary>
+            <param name="collection">
+                The <see cref="T:System.Collections.Generic.IEnumerable`1" /> whose elements are copied to the new
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </param>
+            <param name="comparer">
+                The <see cref="T:System.Collections.Generic.IEqualityComparer`1" /> implementation to use when comparing keys, or null to use the default
+                <see cref="T:System.Collections.Generic.EqualityComparer`1" /> for the type of the key.
+            </param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="collection" /> is null.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="collection" /> contains one or more duplicate keys.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Add(`0,`1)">
+            <summary>
+                Adds the specified key and value to the dictionary as an O(1) operation.
+            </summary>
+            <param name="key">The key of the element to add.</param>
+            <param name="value">The value of the element to add. The value can be null for reference types.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+            <exception cref="T:System.ArgumentException">An element with the same key already exists in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Clear">
+            <summary>
+                Removes all keys and values from the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ContainsKey(`0)">
+            <summary>
+                Determines whether the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> contains the specified key as an O(1) operation.
+            </summary>
+            <param name="key">The key to locate in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.</param>
+            <returns>true if the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> contains an element with the specified key; otherwise, false.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.EnsureCapacity(System.Int32)">
+            <summary>
+                Resizes the internal data structure if necessary to ensure no additional resizing to support the specified capacity.
+            </summary>
+            <param name="capacity">The number of elements that the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> must be able to contain.</param>
+            <returns>The capacity of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="capacity" /> is less than 0.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.GetEnumerator">
+            <summary>
+                Returns an enumerator that iterates through the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </summary>
+            <returns>An <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Enumerator" /> structure for the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.GetOrAdd(`0,`1)">
+            <summary>
+                Adds a key/value pair to the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> if the key does not already exist as an O(1) operation.
+            </summary>
+            <param name="key">The key of the element to add.</param>
+            <param name="value">The value to be added, if the key does not already exist.</param>
+            <returns>
+                The value for the key. This will be either the existing value for the key if the key is already in the dictionary, or the new
+                value if the key was not in the dictionary.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.GetOrAdd(`0,System.Func{`1})">
+            <summary>
+                Adds a key/value pair to the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> by using the specified function, if the key does not
+                already exist as an O(1) operation.
+            </summary>
+            <param name="key">The key of the element to add.</param>
+            <param name="valueFactory">The function used to generate a value for the key.</param>
+            <returns>
+                The value for the key. This will be either the existing value for the key if the key is already in the dictionary, or the new
+                value for the key as returned by valueFactory if the key was not in the dictionary.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.-or-<paramref name="valueFactory" /> is null.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.IndexOf(`0)">
+            <summary>
+                Returns the zero-based index of the element with the specified key within the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> as an O(1)
+                operation.
+            </summary>
+            <param name="key">The key of the element to locate.</param>
+            <returns>
+                The zero-based index of the element with the specified key within the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />, if found;
+                otherwise, -1.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Insert(System.Int32,`0,`1)">
+            <summary>
+                Inserts the specified key/value pair into the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> at the specified index as an O(n)
+                operation.
+            </summary>
+            <param name="index">The zero-based index of the key/value pair to insert.</param>
+            <param name="key">The key of the element to insert.</param>
+            <param name="value">The value of the element to insert.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+            <exception cref="T:System.ArgumentException">An element with the same key already exists in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is greater than
+                <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Insert(`0,`1)">
+            <summary>
+                Inserts the element in this sorted dictionary to the corresponding index using the default comparer.
+            </summary>
+            <param name="key">The key of the element to insert.</param>
+            <param name="value">The value of the element to insert.</param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Insert(`0,`1,System.Collections.Generic.IComparer{`0})">
+            <summary>
+                Inserts the element in this sorted dictionary to the corresponding index using the default comparer.
+            </summary>
+            <param name="key">The key of the element to insert.</param>
+            <param name="value">The value of the element to insert.</param>
+            <param name="comparer">The comparer to use.</param>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Move(System.Int32,System.Int32)">
+            <summary>
+                Moves the element at the specified fromIndex to the specified toIndex while re-arranging the elements in between.
+            </summary>
+            <param name="fromIndex">The zero-based index of the element to move.</param>
+            <param name="toIndex">The zero-based index to move the element to.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="fromIndex" /> is less than 0.
+                -or-
+                <paramref name="fromIndex" /> is equal to or greater than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />
+                -or-
+                <paramref name="toIndex" /> is less than 0.
+                -or-
+                <paramref name="toIndex" /> is equal to or greater than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.MoveRange(System.Int32,System.Int32,System.Int32)">
+            <summary>
+                Moves the specified number of elements at the specified fromIndex to the specified toIndex while re-arranging the elements in between.
+            </summary>
+            <param name="fromIndex">The zero-based index of the elements to move.</param>
+            <param name="toIndex">The zero-based index to move the elements to.</param>
+            <param name="count">The number of elements to move.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="fromIndex" /> is less than 0.
+                -or-
+                <paramref name="fromIndex" /> is equal to or greater than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+                -or-
+                <paramref name="toIndex" /> is less than 0.
+                -or-
+                <paramref name="toIndex" /> is equal to or greater than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+                -or-
+                <paramref name="count" /> is less than 0.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+                <paramref name="fromIndex" /> + <paramref name="count" /> is greater than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+                -or-
+                <paramref name="toIndex" /> + <paramref name="count" /> is greater than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Remove(`0)">
+            <summary>
+                Removes the value with the specified key from the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> as an O(n) operation.
+            </summary>
+            <param name="key">The key of the element to remove.</param>
+            <returns>
+                true if the element is successfully found and removed; otherwise, false. This method returns false if <paramref name="key" /> is
+                not found in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Remove(`0,`1@)">
+            <summary>
+                Removes the value with the specified key from the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> and returns the value as an O(n)
+                operation.
+            </summary>
+            <param name="key">The key of the element to remove.</param>
+            <param name="value">
+                When this method returns, contains the value associated with the specified key, if the key is found; otherwise, the
+                default value for the type of the <paramref name="value" /> parameter. This parameter is passed uninitialized.
+            </param>
+            <returns>
+                true if the element is successfully found and removed; otherwise, false. This method returns false if <paramref name="key" /> is
+                not found in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.RemoveAt(System.Int32)">
+            <summary>
+                Removes the value at the specified index from the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> as an O(n) operation.
+            </summary>
+            <param name="index">The zero-based index of the element to remove.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater
+                than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.TrimExcess">
+            <summary>
+                Sets the capacity of an <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> object to the actual number of elements it contains, rounded up
+                to a nearby, implementation-specific value.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.TrimExcess(System.Int32)">
+            <summary>
+                Sets the capacity of an <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> object to the specified capacity, rounded up to a nearby,
+                implementation-specific value.
+            </summary>
+            <param name="capacity">The number of elements that the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> must be able to contain.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="capacity" /> is less than
+                <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Count" />.
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.TryAdd(`0,`1)">
+            <summary>
+                Tries to add the specified key and value to the dictionary as an O(1) operation.
+            </summary>
+            <param name="key">The key of the element to add.</param>
+            <param name="value">The value of the element to add. The value can be null for reference types.</param>
+            <returns>
+                true if the element was added to the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />; false if the
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> already contained an element with the specified key.
+            </returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.TryGetValue(`0,`1@)">
+            <summary>
+                Gets the value associated with the specified key as an O(1) operation.
+            </summary>
+            <param name="key">The key of the value to get.</param>
+            <param name="value">
+                When this method returns, contains the value associated with the specified key, if the key is found; otherwise, the
+                default value for the type of the <paramref name="value" /> parameter. This parameter is passed uninitialized.
+            </param>
+            <returns>true if the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> contains an element with the specified key; otherwise, false.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="key" /> is null.</exception>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Enumerator">
+            <summary>
+                Enumerates the elements of a <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Enumerator.Current">
+            <summary>
+                Gets the element at the current position of the enumerator.
+            </summary>
+            <returns>The element in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" /> at the current position of the enumerator.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Enumerator.Dispose">
+            <summary>
+                Releases all resources used by the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Enumerator" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.Enumerator.MoveNext">
+            <summary>
+                Advances the enumerator to the next element of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />.
+            </summary>
+            <returns>
+                true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the
+                collection.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">The collection was modified after the enumerator was created.</exception>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection">
+            <summary>
+                Represents the collection of keys in a <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />. This class cannot be inherited.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Count">
+            <summary>
+                Gets the number of elements contained in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" />.
+            </summary>
+            <returns>The number of elements contained in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" />.</returns>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Item(System.Int32)">
+            <summary>
+                Gets the key at the specified index as an O(1) operation.
+            </summary>
+            <param name="index">The zero-based index of the key to get.</param>
+            <returns>The key at the specified index.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater
+                than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Count" />.
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.GetEnumerator">
+            <summary>
+                Returns an enumerator that iterates through the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" />.
+            </summary>
+            <returns>
+                A <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Enumerator" /> for the
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" />.
+            </returns>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Enumerator">
+            <summary>
+                Enumerates the elements of a <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" />.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Enumerator.Current">
+            <summary>
+                Gets the element at the current position of the enumerator.
+            </summary>
+            <returns>The element in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" /> at the current position of the enumerator.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Enumerator.Dispose">
+            <summary>
+                Releases all resources used by the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Enumerator" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection.Enumerator.MoveNext">
+            <summary>
+                Advances the enumerator to the next element of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.KeyCollection" />.
+            </summary>
+            <returns>
+                true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the
+                collection.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">The collection was modified after the enumerator was created.</exception>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection">
+            <summary>
+                Represents the collection of values in a <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2" />. This class cannot be inherited.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Count">
+            <summary>
+                Gets the number of elements contained in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" />.
+            </summary>
+            <returns>The number of elements contained in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" />.</returns>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Item(System.Int32)">
+            <summary>
+                Gets the value at the specified index as an O(1) operation.
+            </summary>
+            <param name="index">The zero-based index of the value to get.</param>
+            <returns>The value at the specified index.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater
+                than <see cref="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Count" />.
+            </exception>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.GetEnumerator">
+            <summary>
+                Returns an enumerator that iterates through the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" />.
+            </summary>
+            <returns>
+                A <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Enumerator" /> for the
+                <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" />.
+            </returns>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Enumerator">
+            <summary>
+                Enumerates the elements of a <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" />.
+            </summary>
+        </member>
+        <member name="P:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Enumerator.Current">
+            <summary>
+                Gets the element at the current position of the enumerator.
+            </summary>
+            <returns>The element in the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" /> at the current position of the enumerator.</returns>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Enumerator.Dispose">
+            <summary>
+                Releases all resources used by the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Enumerator" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection.Enumerator.MoveNext">
+            <summary>
+                Advances the enumerator to the next element of the <see cref="T:Microsoft.EntityFrameworkCore.Utilities.OrderedDictionary`2.ValueCollection" />.
+            </summary>
+            <returns>
+                true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the
+                collection.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">The collection was modified after the enumerator was created.</exception>
+        </member>
+        <member name="T:Microsoft.EntityFrameworkCore.EFDiagnostics">
+            <summary>
+                Contains the IDs of diagnostics emitted by EF Core analyzers, [Experimental] and other mechanisms.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions">
+            <summary>
+                EntityFrameworkCore.Proxies extension methods for <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.ProxiesServiceCollectionExtensions.AddEntityFrameworkProxies(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+                Adds the services required for proxy support in Entity Framework.
+            </summary>
+            <remarks>
+                Calling this method is no longer necessary when building most applications, including those that
+                use dependency injection in ASP.NET or elsewhere.
+                It is only needed when building the internal service provider for use with
+                the <see cref="M:Microsoft.EntityFrameworkCore.DbContextOptionsBuilder.UseInternalServiceProvider(System.IServiceProvider)" /> method.
+                This is not recommend other than for some advanced scenarios.
+            </remarks>
+            <param name="serviceCollection">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <returns>
+                The same service collection so that multiple calls can be chained.
+            </returns>
+        </member>
+        <member name="M:System.Linq.Expressions.ExpressionVisitorExtensions.Visit(System.Linq.Expressions.ExpressionVisitor,System.Collections.Generic.IReadOnlyList{System.Linq.Expressions.Expression})">
+            <summary>
+                Dispatches the list of expressions to one of the more specialized visit methods in this class.
+            </summary>
+            <param name="visitor">The expression visitor.</param>
+            <param name="nodes">The expressions to visit.</param>
+            <returns>
+                The modified expression list, if any of the elements were modified; otherwise, returns the original expression list.
+            </returns>
+        </member>
+        <member name="M:System.Linq.Expressions.ExpressionVisitorExtensions.VisitAndConvert``1(System.Linq.Expressions.ExpressionVisitor,System.Collections.Generic.IReadOnlyList{``0},System.String)">
+            <summary>
+                Visits an expression, casting the result back to the original expression type.
+            </summary>
+            <typeparam name="T">The type of the expression.</typeparam>
+            <param name="visitor">The expression visitor.</param>
+            <param name="nodes">The expression to visit.</param>
+            <param name="callerName">The name of the calling method; used to report a better error message.</param>
+            <returns>
+                The modified expression, if it or any subexpression was modified; otherwise, returns the original expression.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">The visit method for this node returned a different type.</exception>
+        </member>
+        <member name="M:System.Linq.Expressions.ExpressionVisitorExtensions.Visit``1(System.Linq.Expressions.ExpressionVisitor,System.Collections.Generic.IReadOnlyList{``0},System.Func{``0,``0})">
+            <summary>
+                Visits all nodes in the collection using a specified element visitor.
+            </summary>
+            <typeparam name="T">The type of the nodes.</typeparam>
+            <param name="visitor">The expression visitor.</param>
+            <param name="nodes">The nodes to visit.</param>
+            <param name="elementVisitor">
+                A delegate that visits a single element,
+                optionally replacing it with a new element.
+            </param>
+            <returns>
+                The modified node list, if any of the elements were modified;
+                otherwise, returns the original node list.
+            </returns>
+        </member>
+        <member name="M:System.SharedTypeExtensions.DisplayName(System.Type,System.Boolean,System.Boolean)">
+            <summary>
+                This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+                the same compatibility standards as public APIs. It may be changed or removed without notice in
+                any release. You should only use it directly in your code with extreme caution and knowing that
+                doing so can result in application failures when updating to a new Entity Framework Core release.
+            </summary>
+        </member>
+    </members>
+</doc>
