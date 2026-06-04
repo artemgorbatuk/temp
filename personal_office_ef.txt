@@ -1,0 +1,517 @@
+using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace PersonalOffice.DataManager.Migrations
+{
+    /// <inheritdoc />
+    public partial class Task_0001 : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateTable(
+                name: "Currency",
+                columns: table => new
+                {
+                    Code = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    NumericCode = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Currency", x => x.Code);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Lang",
+                columns: table => new
+                {
+                    Code = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Lang", x => x.Code);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LangKey",
+                columns: table => new
+                {
+                    NameKey = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LangKey", x => x.NameKey);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MultilangKey",
+                columns: table => new
+                {
+                    NameKey = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MultilangKey", x => x.NameKey);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RemoteService",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Enabled = table.Column<bool>(type: "bit", nullable: false),
+                    DataSyncUrl = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
+                    AppKey = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DataSyncUrlEnabled = table.Column<bool>(type: "bit", nullable: true),
+                    DataSyncGetCount = table.Column<int>(type: "int", nullable: true),
+                    DataSyncLastDateTime = table.Column<DateTime>(type: "datetime2(7)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RemoteService", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CostField",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Value = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CurrencyCode = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CostField_1", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CostField_Currency",
+                        column: x => x.CurrencyCode,
+                        principalTable: "Currency",
+                        principalColumn: "Code",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CurrencyDisplayName",
+                columns: table => new
+                {
+                    CurrencyCode = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    LangCode = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CurrencyDisplayName", x => new { x.CurrencyCode, x.LangCode });
+                    table.ForeignKey(
+                        name: "FK_CurrencyDisplayName_Currency",
+                        column: x => x.CurrencyCode,
+                        principalTable: "Currency",
+                        principalColumn: "Code",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CurrencyDisplayName_Lang",
+                        column: x => x.LangCode,
+                        principalTable: "Lang",
+                        principalColumn: "Code",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataSetType",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    NameKey = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FieldType", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DataSetType_MultilangKey",
+                        column: x => x.NameKey,
+                        principalTable: "MultilangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LangDictionary",
+                columns: table => new
+                {
+                    NameKey = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LangCode = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LangDictionary", x => new { x.NameKey, x.LangCode });
+                    table.ForeignKey(
+                        name: "FK_LangDictionary_Lang",
+                        column: x => x.LangCode,
+                        principalTable: "Lang",
+                        principalColumn: "Code",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_LangDictionary_LangKey",
+                        column: x => x.NameKey,
+                        principalTable: "LangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_LangDictionary_MultilangKey",
+                        column: x => x.NameKey,
+                        principalTable: "MultilangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataSetHeader_RemoteService",
+                columns: table => new
+                {
+                    DataSetHeaderId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RemoteServiceId = table.Column<int>(type: "int", nullable: false),
+                    Position = table.Column<int>(type: "int", nullable: false),
+                    RemoteServiceId1 = table.Column<int>(type: "int", nullable: false),
+                    DataSetHeader_LangKeyNameKey = table.Column<string>(type: "nvarchar(50)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataSetHeader_RemoteService", x => new { x.DataSetHeaderId, x.RemoteServiceId });
+                    table.ForeignKey(
+                        name: "FK_DataSetHeader_RemoteServiceOutputMessageSetting_LangKey",
+                        column: x => x.DataSetHeaderId,
+                        principalTable: "LangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSetHeader_RemoteService_LangKey_DataSetHeader_LangKeyNameKey",
+                        column: x => x.DataSetHeader_LangKeyNameKey,
+                        principalTable: "LangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DataSetHeader_RemoteService_RemoteService",
+                        column: x => x.RemoteServiceId,
+                        principalTable: "RemoteService",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSetHeader_RemoteService_RemoteService_RemoteServiceId1",
+                        column: x => x.RemoteServiceId1,
+                        principalTable: "RemoteService",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataSetType_RemoteService",
+                columns: table => new
+                {
+                    DataSetTypeId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RemoteServiceId = table.Column<int>(type: "int", maxLength: 50, nullable: false),
+                    Position = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataSetType_RemoteService", x => new { x.DataSetTypeId, x.RemoteServiceId });
+                    table.ForeignKey(
+                        name: "FK_DataSetType_RemoteServiceOutputMessageSetting_LangKey",
+                        column: x => x.DataSetTypeId,
+                        principalTable: "LangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSetType_RemoteService_RemoteService",
+                        column: x => x.RemoteServiceId,
+                        principalTable: "RemoteService",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataSet",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DataSetTypeId = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    RemoteServiceId = table.Column<int>(type: "int", nullable: false),
+                    IdFromRemoteService = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    DateTimeFromRemoteService = table.Column<DateTime>(type: "datetime2(7)", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2(7)", nullable: false),
+                    UserId = table.Column<long>(type: "bigint", nullable: true),
+                    MobileUid = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    DataSetType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    LangKeyNameKey = table.Column<string>(type: "nvarchar(50)", nullable: true),
+                    RemoteServiceId1 = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataSet", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DataSet_LangKey",
+                        column: x => x.DataSetTypeId,
+                        principalTable: "LangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSet_LangKey_LangKeyNameKey",
+                        column: x => x.LangKeyNameKey,
+                        principalTable: "LangKey",
+                        principalColumn: "NameKey");
+                    table.ForeignKey(
+                        name: "FK_DataSet_RemoteService",
+                        column: x => x.RemoteServiceId,
+                        principalTable: "RemoteService",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSet_RemoteService_RemoteServiceId1",
+                        column: x => x.RemoteServiceId1,
+                        principalTable: "RemoteService",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Field_FieldType",
+                        column: x => x.DataSetTypeId,
+                        principalTable: "DataSetType",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataSetItem",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DataSetId = table.Column<long>(type: "bigint", nullable: false),
+                    ParentId = table.Column<long>(type: "bigint", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
+                    NameKey = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    DataSetHeader = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    TextField = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
+                    DateTimeField = table.Column<DateTime>(type: "datetime2(7)", nullable: true),
+                    CostFieldId = table.Column<long>(type: "bigint", nullable: true),
+                    DataSetId1 = table.Column<long>(type: "bigint", nullable: true),
+                    DataSetTypeId = table.Column<string>(type: "nvarchar(10)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataSetItem_1", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DataSetItem_CostField",
+                        column: x => x.CostFieldId,
+                        principalTable: "CostField",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSetItem_DataSet",
+                        column: x => x.DataSetId,
+                        principalTable: "DataSet",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSetItem_DataSetItem",
+                        column: x => x.ParentId,
+                        principalTable: "DataSetItem",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_DataSetItem_DataSetType_DataSetTypeId",
+                        column: x => x.DataSetTypeId,
+                        principalTable: "DataSetType",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_DataSetItem_DataSet_DataSetId1",
+                        column: x => x.DataSetId1,
+                        principalTable: "DataSet",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_DataSetItem_LangKey",
+                        column: x => x.DataSetHeader,
+                        principalTable: "LangKey",
+                        principalColumn: "NameKey",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MultilangField",
+                columns: table => new
+                {
+                    DataSetItemId = table.Column<long>(type: "bigint", nullable: false),
+                    LangCode = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MultilangField", x => new { x.DataSetItemId, x.LangCode });
+                    table.ForeignKey(
+                        name: "FK_MultilangField_DataSetItem",
+                        column: x => x.DataSetItemId,
+                        principalTable: "DataSetItem",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MultilangField_Lang",
+                        column: x => x.LangCode,
+                        principalTable: "Lang",
+                        principalColumn: "Code",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CostField_CurrencyCode",
+                table: "CostField",
+                column: "CurrencyCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CurrencyDisplayName_LangCode",
+                table: "CurrencyDisplayName",
+                column: "LangCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSet_DataSetTypeId",
+                table: "DataSet",
+                column: "DataSetTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSet_LangKeyNameKey",
+                table: "DataSet",
+                column: "LangKeyNameKey");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSet_RemoteServiceId",
+                table: "DataSet",
+                column: "RemoteServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSet_RemoteServiceId1",
+                table: "DataSet",
+                column: "RemoteServiceId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetHeader_RemoteService_DataSetHeader_LangKeyNameKey",
+                table: "DataSetHeader_RemoteService",
+                column: "DataSetHeader_LangKeyNameKey");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetHeader_RemoteService_RemoteServiceId",
+                table: "DataSetHeader_RemoteService",
+                column: "RemoteServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetHeader_RemoteService_RemoteServiceId1",
+                table: "DataSetHeader_RemoteService",
+                column: "RemoteServiceId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetItem_CostFieldId",
+                table: "DataSetItem",
+                column: "CostFieldId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetItem_DataSetHeader",
+                table: "DataSetItem",
+                column: "DataSetHeader");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetItem_DataSetId",
+                table: "DataSetItem",
+                column: "DataSetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetItem_DataSetId1",
+                table: "DataSetItem",
+                column: "DataSetId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetItem_DataSetTypeId",
+                table: "DataSetItem",
+                column: "DataSetTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetItem_ParentId",
+                table: "DataSetItem",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetType_NameKey",
+                table: "DataSetType",
+                column: "NameKey");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DataSetType_RemoteService_RemoteServiceId",
+                table: "DataSetType_RemoteService",
+                column: "RemoteServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LangDictionary_LangCode",
+                table: "LangDictionary",
+                column: "LangCode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MultilangField_LangCode",
+                table: "MultilangField",
+                column: "LangCode");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "CurrencyDisplayName");
+
+            migrationBuilder.DropTable(
+                name: "DataSetHeader_RemoteService");
+
+            migrationBuilder.DropTable(
+                name: "DataSetType_RemoteService");
+
+            migrationBuilder.DropTable(
+                name: "LangDictionary");
+
+            migrationBuilder.DropTable(
+                name: "MultilangField");
+
+            migrationBuilder.DropTable(
+                name: "DataSetItem");
+
+            migrationBuilder.DropTable(
+                name: "Lang");
+
+            migrationBuilder.DropTable(
+                name: "CostField");
+
+            migrationBuilder.DropTable(
+                name: "DataSet");
+
+            migrationBuilder.DropTable(
+                name: "Currency");
+
+            migrationBuilder.DropTable(
+                name: "LangKey");
+
+            migrationBuilder.DropTable(
+                name: "RemoteService");
+
+            migrationBuilder.DropTable(
+                name: "DataSetType");
+
+            migrationBuilder.DropTable(
+                name: "MultilangKey");
+        }
+    }
+}
